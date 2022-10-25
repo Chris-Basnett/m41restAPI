@@ -1,9 +1,11 @@
 const User = require('./userModel')
+const jwt = require('jsonwebtoken')
 
 exports.createUser = async (req, res) =>{
     try{
         const newUser = await User.create(req.body)
-        res.status(201).send({user: newUser})
+        const token = await jwt.sign({_id: newUser._id}, process.env.SECRET)
+        res.status(201).send({user: "user has been created", token})
     }catch (error){
         console.log(error)
         res.status(500).send({error: error.message})
@@ -37,6 +39,17 @@ exports.deleteUser = async (req, res) =>{
     try{
         await User.deleteOne({username: req.params.username})
         res.status(200).send({message: "Delete successful"})
+    }catch(error){
+        console.log(error)
+        res.status(500).send({error: error.message})
+    }
+}
+// task is to generate a token on createUSer amd loginUser, this should include some unique info
+// from the database, the token needs to be sent back in the response and have an endpoint.
+exports.loginUser = async (req, res) =>{
+    try{
+        const token = await jwt.sign({_id: req.user._id}, process.env.SECRET)
+        res.status(200).send({user: req.user.username, token, text: "Login Successful"})
     }catch(error){
         console.log(error)
         res.status(500).send({error: error.message})
